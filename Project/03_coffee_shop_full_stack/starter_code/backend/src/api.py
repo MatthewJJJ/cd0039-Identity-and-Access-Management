@@ -11,7 +11,7 @@ app = Flask(__name__)
 setup_db(app)
 CORS(app)
 
-# uncomment following line to generate database...
+# ATTENTION!!! -> uncomment following line to generate database...
 #db_drop_and_create_all()
 
 # ROUTES
@@ -68,7 +68,7 @@ def edit_drinks(drink_id):
     
     return jsonify({
         'success': True,
-        'drinks': drink_for_edit.long()
+        'drinks': [drink_for_edit.long()]
     })
 
 @app.route('/drinks/<int:drink_id>', methods=["DELETE"])
@@ -94,25 +94,9 @@ def delete_drinks(drink_id):
 def bad_request(error):
     return jsonify({
         "success": False,
-        "error": 404,
+        "error": 400,
         "message": "bad request"
-    }), 404
-
-@app.errorhandler(401)
-def unprocessable(error):
-    return jsonify({
-        "success": False,
-        "error": 401,
-        "message": "cannot authenticate user... which resulted in failure to access resource"
-    }), 401
-
-@app.errorhandler(403)
-def unprocessable(error):
-    return jsonify({
-        "success": False,
-        "error": 403,
-        "message": "forbidden to access resource"
-    }), 403
+    }), 400
 
 @app.errorhandler(404)
 def not_found(error):
@@ -129,5 +113,13 @@ def unprocessable(error):
         "error": 422,
         "message": "unprocessable"
     }), 422
+
+@app.errorhandler(AuthError)
+def handle_custom_auth_error(error):
+    response = jsonify({
+        "error": error.status_code,
+        "message": error.error
+    })
+    return response, error.status_code
 
 
